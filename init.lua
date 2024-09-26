@@ -230,17 +230,10 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  'rebelot/kanagawa.nvim',
   'andreasvc/vim-256noir',
   'sho-87/kanagawa-paper.nvim',
   'Soares/base16.nvim',
-  'LuRsT/austere.vim',
-  'aditya-azad/candle-grey',
-  'Jorengarenar/vim-darkness',
-  'jaredgorski/fogbell.vim',
-  'fxn/vim-monochrome',
-  'Lokaltog/vim-monotone',
-  'kdheepak/monochrome.nvim',
+  'dgox16/oldworld.nvim',
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -265,6 +258,21 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+  },
+
+  {
+    'mg979/vim-visual-multi',
+    init = function()
+      -- Remap 'Add Cursor Down' and 'Add Cursor Up' to Alt+Down and Alt+Up
+      vim.g.VM_maps = {
+        ['Add Cursor Down'] = '<M-down>',
+        ['Add Cursor Up'] = '<M-up>',
+        -- Optionally, remap other actions if desired
+        -- ['Find Under'] = '<M-n>',
+        -- ['Find Subword Under'] = '<M-n>',
+        -- ['Select All'] = '<Leader>m',
+      }
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
@@ -840,13 +848,14 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'andreasvc/vim-256noir',
+    'dgox16/oldworld.nvim',
+    laxy = false,
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme '256_noir'
+      vim.cmd.colorscheme 'oldworld'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
@@ -874,32 +883,114 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
+      -- -- Simple and easy statusline.
+      -- --  You could remove this setup call if you don't like it,
+      -- --  and try some other statusline plugin
+      -- local statusline = require 'mini.statusline'
+      -- -- set use_icons to true if you have a Nerd Font
+      -- statusline.setup { use_icons = vim.g.have_nerd_font }
+      --
+      -- -- You can configure sections in the statusline by overriding their
+      -- -- default behavior. For example, here we set the section for
+      -- -- cursor location to LINE:COLUMN
+      -- ---@diagnostic disable-next-line: duplicate-set-field
+      -- statusline.section_location = function()
+      --   return '%2l:%-2v'
+      -- end
 
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons', opt = true },
+    config = function()
+      require('lualine').setup {
+        options = {
+          icons_enabled = true,
+          theme = 'auto',
+          component_separators = { left = '|', right = '|' },
+          section_separators = { left = '', right = '' },
+        },
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_c = { 'filename' },
+          lualine_x = { 'encoding', 'fileformat', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' },
+        },
+      }
+    end,
+  },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter-textobjects',
+    },
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'javascript',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'python',
+        'query',
+        'rust',
+        'typescript',
+        'vim',
+        'vimdoc',
+      },
+      incremental_selection = {
+        enable = true,
+        keymaps = {
+          init_selection = 'gnn',
+          node_incremental = 'grn',
+          scope_incremental = 'grc',
+          node_decremental = 'grm',
+        },
+      },
+      textobjects = {
+        select = {
+          enable = true,
+          lookahead = true,
+          keymaps = {
+            ['af'] = '@function.outer',
+            ['if'] = '@function.inner',
+            ['ac'] = '@class.outer',
+            ['ic'] = '@class.inner',
+          },
+        },
+        move = {
+          enable = true,
+          set_jumps = true,
+          goto_next_start = {
+            [']m'] = '@function.outer',
+            [']]'] = '@class.outer',
+          },
+          goto_next_end = {
+            [']M'] = '@function.outer',
+            [']['] = '@class.outer',
+          },
+          goto_previous_start = {
+            ['[m'] = '@function.outer',
+            ['[['] = '@class.outer',
+          },
+          goto_previous_end = {
+            ['[M'] = '@function.outer',
+            ['[]'] = '@class.outer',
+          },
+        },
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -918,6 +1009,14 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    dependencies = 'nvim-treesitter/nvim-treesitter',
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    dependencies = 'nvim-treesitter/nvim-treesitter',
+  },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -928,12 +1027,12 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -987,7 +1086,110 @@ local function telescope_vim_keybindings()
 
   local common_vim_keybindings = require 'common_keybindings'
 
-  for _, binding in ipairs(common_vim_keybindings) do
+  local custom_keybindings = {
+    { mode = 'Normal', lhs = '<C-q>', desc = 'In Telescope: Add selections to quickfix list' },
+    { mode = 'Ex', lhs = ':%s/old_word/new_word/cg', desc = 'Search and replace with confirmation in current buffer' },
+    { mode = 'Ex', lhs = ':cdo s/old_word/new_word/cg', desc = 'Execute command on each entry in quickfix list' },
+    { mode = 'Ex', lhs = ':cfdo s/old_word/new_word/cg', desc = 'Execute command on each file in quickfix list' },
+  }
+
+  local neotree_keybindings = {
+    { mode = 'Neotree', lhs = '?', desc = 'show_help: Shows a popup window with all of the mappings for the current Neotree window' },
+    { mode = 'Neotree', lhs = '<', desc = 'prev_source: Switches to the previous source' },
+    { mode = 'Neotree', lhs = '>', desc = 'next_source: Switches to the next source' },
+    { mode = 'Neotree', lhs = '<bs>', desc = 'navigate_up: Moves the root directory up one level' },
+    { mode = 'Neotree', lhs = '.', desc = 'set_root: Changes the root directory to the currently selected folder' },
+    { mode = 'Neotree', lhs = '<space>', desc = 'toggle_node: Expand or collapse a node with children' },
+    { mode = 'Neotree', lhs = '<2-LeftMouse>', desc = 'open: Expand or collapse a folder. If a file is selected, open it in the window closest to the tree' },
+    { mode = 'Neotree', lhs = '<cr>', desc = 'open: Same as above' },
+    { mode = 'Neotree', lhs = 'C', desc = "close_node: Close node if it is open, else close it's parent" },
+    { mode = 'Neotree', lhs = 'z', desc = 'close_all_nodes: Close all nodes in the tree' },
+    { mode = 'Neotree', lhs = 'P', desc = "toggle_preview: Toggles 'preview mode'" },
+    { mode = 'Neotree', lhs = 'l', desc = 'focus_preview: Focus the active preview window' },
+    { mode = 'Neotree', lhs = '<C-f>', desc = 'scroll_preview: Scrolls preview window down (without focusing it)' },
+    { mode = 'Neotree', lhs = '<C-b>', desc = 'scroll_preview: Scrolls preview window up (without focusing it)' },
+    { mode = 'Neotree', lhs = '<esc>', desc = 'cancel: Cancel the current operation' },
+    { mode = 'Neotree', lhs = 'S', desc = 'open_split: Same as open, but opens in a new horizontal split' },
+    { mode = 'Neotree', lhs = 's', desc = 'open_vsplit: Same as open, but opens in a vertical split' },
+    { mode = 'Neotree', lhs = 't', desc = 'open_tabnew: Same as open, but opens in a new tab' },
+    { mode = 'Neotree', lhs = 'w', desc = 'open_with_window_picker: Uses the `window-picker` plugin to select a window to open the selected node in' },
+    { mode = 'Neotree', lhs = '[g', desc = 'prev_git_modified: Jump to the previous file reported by `git status`' },
+    { mode = 'Neotree', lhs = ']g', desc = 'next_git_modified: Jump to the next file reported by `git status`' },
+    { mode = 'Neotree', lhs = 'a', desc = 'add: Create a new file OR directory' },
+    { mode = 'Neotree', lhs = 'A', desc = 'add_directory: Create a new directory' },
+    { mode = 'Neotree', lhs = 'd', desc = 'delete: Delete the selected file or directory' },
+    { mode = 'Neotree', lhs = 'i', desc = 'show_file_details: Show file details in popup window' },
+    { mode = 'Neotree', lhs = 'r', desc = 'rename: Rename the selected file or directory' },
+    { mode = 'Neotree', lhs = 'y', desc = 'copy_to_clipboard: Mark file to be copied' },
+    { mode = 'Neotree', lhs = 'x', desc = 'cut_to_clipboard: Mark file to be cut (moved)' },
+    { mode = 'Neotree', lhs = 'p', desc = 'paste_from_clipboard: Copy/move each marked file to the selected folder' },
+    { mode = 'Neotree', lhs = 'c', desc = 'copy: Copy the selected file or directory' },
+    { mode = 'Neotree', lhs = 'm', desc = 'move: Move the selected file or directory' },
+    { mode = 'Neotree', lhs = 'H', desc = 'toggle_hidden: Toggle whether hidden (filtered items) are shown or not' },
+    { mode = 'Neotree', lhs = 'R', desc = 'refresh: Rescan the filesystem and redraw the tree' },
+    { mode = 'Neotree', lhs = 'o', desc = 'show_help: Show help menu for order by choices' },
+    { mode = 'Neotree', lhs = 'oc', desc = 'order_by_created: Sort the tree by created date' },
+    { mode = 'Neotree', lhs = 'od', desc = 'order_by_diagnostics: Sort by diagnostic severity' },
+    { mode = 'Neotree', lhs = 'og', desc = 'order_by_git_status: Sort by git status' },
+    { mode = 'Neotree', lhs = 'om', desc = 'order_by_modified: Sort by last modified date' },
+    { mode = 'Neotree', lhs = 'on', desc = 'order_by_name: Sort by name (default sort)' },
+    { mode = 'Neotree', lhs = 'os', desc = 'order_by_size: Sort by size' },
+    { mode = 'Neotree', lhs = 'ot', desc = 'order_by_type: Sort by type' },
+    { mode = 'Neotree', lhs = '/', desc = 'fuzzy_finder: Filter the tree recursively, searching for files and folders' },
+    { mode = 'Neotree', lhs = 'D', desc = 'fuzzy_finder_directory: Like fuzzy_finder above, but only shows directories' },
+    { mode = 'Neotree', lhs = '#', desc = 'fuzzy_sorter: Sort the tree recursively based on fzy algorithm' },
+    { mode = 'Neotree', lhs = 'f', desc = 'filter_on_submit: Same as fuzzy_finder, but does not search until you hit enter' },
+    { mode = 'Neotree', lhs = '<C-x>', desc = 'clear_filter: Removes the filter' },
+    { mode = 'Neotree', lhs = '\\', desc = 'close_window: Close the Neotree window' },
+    { mode = 'Neotree', lhs = 'q', desc = 'close_window: Close the Neotree window' },
+    { mode = 'Neotree', lhs = 'e', desc = 'toggle_auto_expand_width: Toggle auto expand width' },
+  }
+
+  local gitsigns_keybindings = {
+    -- Default keybindings
+    { mode = 'Gitsigns: n', lhs = ']c', desc = 'Next hunk' },
+    { mode = 'Gitsigns: n', lhs = '[c', desc = 'Previous hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hs', desc = 'Stage hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hr', desc = 'Reset hunk' },
+    { mode = 'Gitsigns: v', lhs = '<leader>hs', desc = 'Stage hunk' },
+    { mode = 'Gitsigns: v', lhs = '<leader>hr', desc = 'Reset hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hS', desc = 'Stage buffer' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hu', desc = 'Undo stage hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hR', desc = 'Reset buffer' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hp', desc = 'Preview hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hb', desc = 'Blame line' },
+    { mode = 'Gitsigns: n', lhs = '<leader>tb', desc = 'Toggle current line blame' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hd', desc = 'Diff this' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hD', desc = 'Diff this ~' },
+    { mode = 'Gitsigns: o', lhs = 'ih', desc = 'Select hunk' },
+    { mode = 'Gitsigns: x', lhs = 'ih', desc = 'Select hunk' },
+
+    -- Additional keybindings from the provided configuration
+    { mode = 'Gitsigns: n', lhs = ']c', desc = 'Jump to next git [c]hange' },
+    { mode = 'Gitsigns: n', lhs = '[c', desc = 'Jump to previous git [c]hange' },
+    { mode = 'Gitsigns: v', lhs = '<leader>hs', desc = 'stage git hunk' },
+    { mode = 'Gitsigns: v', lhs = '<leader>hr', desc = 'reset git hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hs', desc = 'git [s]tage hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hr', desc = 'git [r]eset hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hS', desc = 'git [S]tage buffer' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hu', desc = 'git [u]ndo stage hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hR', desc = 'git [R]eset buffer' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hp', desc = 'git [p]review hunk' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hb', desc = 'git [b]lame line' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hd', desc = 'git [d]iff against index' },
+    { mode = 'Gitsigns: n', lhs = '<leader>hD', desc = 'git [D]iff against last commit' },
+    { mode = 'Gitsigns: n', lhs = '<leader>tb', desc = '[T]oggle git show [b]lame line' },
+    { mode = 'Gitsigns: n', lhs = '<leader>tD', desc = '[T]oggle git show [D]eleted' },
+  }
+
+  local all_keybindings = {}
+
+  vim.list_extend(all_keybindings, common_vim_keybindings or {})
+  vim.list_extend(all_keybindings, custom_keybindings or {})
+  vim.list_extend(all_keybindings, neotree_keybindings or {})
+  vim.list_extend(all_keybindings, gitsigns_keybindings or {})
+
+  for _, binding in ipairs(all_keybindings) do
     table.insert(keybindings, binding)
     max_len_lhs = math.max(max_len_lhs, #binding.lhs)
     max_len_mode = math.max(max_len_mode, #binding.mode)
